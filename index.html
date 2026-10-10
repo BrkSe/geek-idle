@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>GEEK.EXE — Retro Idle</title>
+<meta name="theme-color" content="#000">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{--fg:#33ff66;--bg:#020a04;--acc:#ffcc33;--dim:#1a7a33;--win:#c0c0c0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:#000;color:var(--fg);font-family:'VT323',monospace;font-size:20px;overflow-x:hidden;user-select:none}
+body{min-height:100vh;display:flex;justify-content:center;transition:background 1s}
+#crt{position:fixed;inset:0;pointer-events:none;z-index:50;background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 1px,transparent 1px 3px);box-shadow:inset 0 0 120px rgba(0,0,0,.9)}
+#crt:after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.6));animation:flick 4s infinite}
+@keyframes flick{50%{opacity:.85}}
+#app{width:100%;max-width:520px;padding:8px 8px 40px}
+.title{font-family:'Press Start 2P';font-size:13px;text-align:center;padding:8px;color:var(--acc);text-shadow:0 0 6px var(--acc)}
+.bar{display:flex;justify-content:space-between;font-family:'Press Start 2P';font-size:9px;background:#000;border:2px solid var(--fg);padding:6px;box-shadow:0 0 8px var(--fg)}
+.big{text-align:center;margin:8px 0}
+#bytes{font-family:'Press Start 2P';font-size:22px;text-shadow:0 0 10px var(--fg)}
+#bps{font-size:20px;color:var(--dim)}
+canvas{width:100%;image-rendering:pixelated;border:3px solid var(--fg);box-shadow:0 0 14px var(--fg);display:block;background:#000}
+#tap{display:block;width:100%;margin:10px 0;padding:18px;font-family:'Press Start 2P';font-size:14px;color:#000;background:var(--fg);border:none;border-bottom:6px solid var(--dim);box-shadow:0 0 16px var(--fg);cursor:pointer}
+#tap:active{transform:translateY(4px);border-bottom-width:2px}
+.tabs{display:flex;gap:4px;margin-top:8px}
+.tabs button{flex:1;font-family:'Press Start 2P';font-size:9px;padding:10px 2px;background:var(--win);color:#000;border:3px outset #fff;cursor:pointer}
+.tabs button.on{border-style:inset;background:#a0a0a0}
+.panel{border:2px solid var(--fg);border-top:none;background:rgba(0,0,0,.7);padding:6px;min-height:200px}
+.item{display:flex;align-items:center;gap:8px;padding:8px;margin:4px 0;border:2px solid var(--dim);cursor:pointer;transition:.1s}
+.item.ok{border-color:var(--fg);box-shadow:0 0 6px var(--fg)}
+.item.no{opacity:.45}
+.item.hide{filter:blur(3px);opacity:.25;pointer-events:none}
+.item:active{transform:scale(.98)}
+.ico{font-size:28px;width:36px;text-align:center}
+.inf{flex:1;line-height:1}
+.nm{font-family:'Press Start 2P';font-size:9px;color:var(--acc)}
+.ds{font-size:17px;color:var(--dim)}
+.cs{font-size:19px}
+.cnt{font-family:'Press Start 2P';font-size:14px}
+.era{font-family:'Press Start 2P';font-size:9px;margin:6px 0}
+.prog{height:12px;border:2px solid var(--fg);margin:4px 0}.prog div{height:100%;background:var(--fg);box-shadow:0 0 6px var(--fg)}
+.log{font-size:17px;height:60px;overflow:hidden;color:var(--dim);margin-top:6px}
+.btn{font-family:'Press Start 2P';font-size:10px;padding:12px;width:100%;margin-top:8px;background:var(--acc);border:none;cursor:pointer}
+.btn:disabled{opacity:.3}
+.aud{display:flex;gap:6px}.aud button{font-size:16px;background:#000;border:2px solid var(--fg);color:var(--fg);padding:2px 6px;cursor:pointer}.aud button.off{opacity:.4}
+.bar{align-items:center}
+#buffs{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;min-height:4px;margin-bottom:4px}#buffs span{font-family:'Press Start 2P';font-size:8px;background:var(--acc);color:#000;padding:4px;animation:pulse 1s infinite}#buffs span.bad{background:#f33;color:#fff}
+@keyframes pulse{50%{opacity:.6}}
+#toasts{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:70;width:92%;max-width:420px;pointer-events:none}
+.toast{background:var(--win);color:#000;border:3px outset #fff;padding:8px;margin-bottom:6px;font-size:19px;animation:tin .3s}
+@keyframes tin{from{transform:translateY(-30px);opacity:0}}
+.evt{position:fixed;z-index:45;text-align:center;cursor:pointer;animation:bob 1s infinite alternate;padding:6px;touch-action:manipulation}
+.evt .ei{font-size:44px;filter:drop-shadow(0 0 8px var(--acc))}.evt .et{font-family:'Press Start 2P';font-size:8px;background:#000;color:var(--acc);border:2px solid var(--acc);padding:3px;white-space:nowrap}
+@keyframes bob{to{transform:translateY(-10px) rotate(6deg)}}
+.tree{margin-top:8px}.tier{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.link{text-align:center;color:var(--dim);font-size:16px;line-height:1}
+.sk{border:2px solid var(--dim);padding:5px;text-align:center;cursor:pointer;opacity:.6}.sk .ico{width:auto;font-size:22px}.sk .nm{font-size:7px}.sk .ds{font-size:15px}
+.sk.can{opacity:1;border-color:var(--acc);box-shadow:0 0 8px var(--acc)}.sk.own{opacity:1;border-color:var(--fg);background:rgba(51,255,102,.12)}.sk.lock{opacity:.3}
+.achs{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-top:6px}.ach{border:2px solid var(--dim);padding:4px;opacity:.4}.ach.own{opacity:1;border-color:var(--acc)}.ach .ico{width:auto;font-size:20px}.ach .nm{font-size:7px}.ach .ds{font-size:15px}
+.bulk{display:flex;gap:4px;margin-bottom:4px}.bulk button{flex:1;font-family:'Press Start 2P';font-size:9px;padding:8px;background:#000;color:var(--fg);border:2px solid var(--dim);cursor:pointer}.bulk button.on{border-color:var(--acc);color:var(--acc);box-shadow:0 0 6px var(--acc)}
+.ms{position:relative;height:13px;border:1px solid var(--dim);margin-top:3px}.ms div{height:100%;background:var(--dim)}.ms span{position:absolute;left:3px;top:-2px;font-size:14px;color:#fff}
+#hint{font-size:17px;color:var(--acc);min-height:18px}
+.tabs button{font-size:7px;padding:10px 1px}
+
+.float{position:fixed;pointer-events:none;font-family:'Press Start 2P';font-size:12px;color:var(--acc);text-shadow:0 0 6px var(--acc);animation:up 0.9s forwards;z-index:40}
+@keyframes up{to{transform:translateY(-70px);opacity:0}}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
+#modal .box{background:var(--win);color:#000;border:3px outset #fff;max-width:420px;width:100%}
+#modal .hd{background:#000080;color:#fff;font-family:'Press Start 2P';font-size:10px;padding:6px}
+#modal .bd{padding:12px;font-size:20px}
+</style></head><body>
+<div id="crt"></div>
+<div id="app">
+ <div class="title">▓ GEEK.EXE ▓</div>
+ <div class="bar"><span id="eraName">ERA</span><span id="pp">⚛ 0</span><span class="aud"><button id="mus">🎵</button><button id="sfxb">🔊</button></span></div><div id="toasts"></div>
+ <div class="big"><div id="bytes">0 B</div><div id="bps">0 Byte/sn</div><div id="hint"></div></div>
+ <div id="buffs"></div><canvas id="scene" width="160" height="100"></canvas>
+ <button id="tap">⌨ KOD YAZ!</button>
+ <div class="era" id="eraNext"></div><div class="prog"><div id="eraBar" style="width:0"></div></div>
+ <div class="tabs"><button data-t="shop" class="on">DONANIM</button><button data-t="up">UPGRADE</button><button data-t="sk">SKILL</button><button data-t="ach">BAŞARIM</button><button data-t="goal">HEDEF</button></div>
+ <div class="panel" id="panel"></div>
+ <div class="log" id="log"></div>
+</div>
+<div id="modal"><div class="box"><div class="hd" id="mh"></div><div class="bd" id="mb"></div></div></div>
+<script>
+const $=s=>document.querySelector(s);
+const U=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc'];
+function fmt(n){if(n<1000)return n<10?(Math.floor(n*10)/10).toString():Math.floor(n).toString();let i=Math.floor(Math.log10(n)/3);if(i>=U.length)return n.toExponential(2);return (n/10**(i*3)).toFixed(2)+U[i]}
+const RC=12,RP=7,CB=k=>Math.round(10*RC**k*(k?1.5:1)),PB=k=>.5*RP**k;
+const B=[ // buildings
+ {id:'kb',n:'Mekanik Klavye',i:'⌨️',d:'Tık tık tık... Cherry MX Blue',c:CB(0),p:PB(0)},
+ {id:'cof',n:'Kahve',i:'☕',d:'Coffee → Code dönüşümü',c:CB(1),p:PB(1)},
+ {id:'so',n:'Stack Overflow',i:'📚',d:'Copy-paste mühendisliği',c:CB(2),p:PB(2)},
+ {id:'lin',n:'Linux Box',i:'🐧',d:'sudo apt install verim',c:CB(3),p:PB(3)},
+ {id:'gpu',n:'GPU',i:'🎮',d:'RGB = +%20 FPS',c:CB(4),p:PB(4)},
+ {id:'rack',n:'Server Rack',i:'🗄️',d:'Vıııınnnn sesi',c:CB(5),p:PB(5)},
+ {id:'cloud',n:'Cloud Cluster',i:'☁️',d:'Başkasının bilgisayarı',c:CB(6),p:PB(6)},
+ {id:'ai',n:'AI Model',i:'🤖',d:'Kodunu kendisi yazıyor',c:CB(7),p:PB(7)},
+ {id:'q',n:'Quantum Computer',i:'⚛️',d:'Hem 0 hem 1',c:CB(8),p:PB(8)},
+ {id:'dys',n:'Dyson Datacenter',i:'☀️',d:'Güneşi soğutucu yaptık',c:CB(9),p:PB(9)},
+];
+const GROW=1.13, MS=[10,25,50,100,150,200,300,400,500];
+const msCount=n=>MS.filter(x=>n>=x).length;
+const nextMs=n=>MS.find(x=>n<x);
+const UP=[
+ {id:'u1',n:'Vim Öğren',i:'📝',d:'Tık gücü x2 (çıkışı bulursan)',c:CB(0)*4,f:s=>s.clk*=2},
+ {id:'u2',n:'Dark Mode',i:'🌙',d:'Klavye x2',c:CB(0)*12,f:s=>s.m.kb*=2},
+ {id:'u3',n:'Espresso',i:'☕',d:'Kahve x2',c:CB(1)*8,f:s=>s.m.cof*=2},
+ {id:'u4',n:'Rubber Duck',i:'🦆',d:'Tık gücü x3',c:CB(1)*20,f:s=>s.clk*=3},
+ {id:'u5',n:'Reputation 10K',i:'🏅',d:'Stack Overflow x2',c:CB(2)*8,f:s=>s.m.so*=2},
+ {id:'u7',n:'Tık = %1 BPS',i:'🖱️',d:'Her tık, saniyelik üretimin %1i kadar ekler',c:CB(2)*15,f:s=>s.clkPct+=.01},
+ {id:'u6',n:'Arch btw',i:'🐧',d:'Linux x2',c:CB(3)*8,f:s=>s.m.lin*=2},
+ {id:'u15',n:'Lubed Switches',i:'🧴',d:'Klavye & Kahve x3',c:CB(3)*20,f:s=>{s.m.kb*=3;s.m.cof*=3}},
+ {id:'u8',n:'Overclock',i:'🔥',d:'GPU x2',c:CB(4)*8,f:s=>s.m.gpu*=2},
+ {id:'u10',n:'10x Engineer',i:'🦸',d:'Her şey x2',c:CB(4)*25,f:s=>s.all*=2},
+ {id:'u16',n:'Liquid Cooling',i:'💧',d:'GPU & Rack x2',c:CB(5)*8,f:s=>{s.m.gpu*=2;s.m.rack*=2}},
+ {id:'u9',n:'Kubernetes',i:'⎈',d:'Rack & Cloud x2',c:CB(6)*8,f:s=>{s.m.rack*=2;s.m.cloud*=2}},
+ {id:'u17',n:'Serverless',i:'λ',d:'Cloud x3',c:CB(6)*25,f:s=>s.m.cloud*=3},
+ {id:'u13',n:'Tık = %5 BPS',i:'⚡',d:'Tıklar daha da güçlü',c:CB(7)*5,f:s=>s.clkPct+=.04},
+ {id:'u11',n:'Transformer',i:'🧠',d:'AI x3',c:CB(7)*10,f:s=>s.m.ai*=3},
+ {id:'u14',n:'Self-Improving AI',i:'♾️',d:'Her şey x3',c:CB(8)*8,f:s=>s.all*=3},
+ {id:'u12',n:'Error Correction',i:'🧪',d:'Quantum x3',c:CB(8)*20,f:s=>s.m.q*=3},
+ {id:'u18',n:'Dyson Swarm',i:'🛰️',d:'Dyson x3',c:CB(9)*10,f:s=>s.m.dys*=3},
+ {id:'u19',n:'Recursive Self-Compile',i:'🌀',d:'Her şey x5',c:CB(9)*40,f:s=>s.all*=5},
+];
+const ERA=[
+ {n:'GARAJ',at:0,fg:'#33ff66',dim:'#1a7a33',bg:'#020a04',wall:'#3a2a1a',floor:'#2a1a0a'},
+ {n:'STARTUP',at:5e4,fg:'#ffb000',dim:'#8a5a00',bg:'#0a0600',wall:'#2a3a4a',floor:'#3a3a3a'},
+ {n:'DATACENTER',at:5e6,fg:'#33ccff',dim:'#1a6a8a',bg:'#00060a',wall:'#101820',floor:'#202830'},
+ {n:'AI LAB',at:1e9,fg:'#ff55ff',dim:'#8a2a8a',bg:'#0a000a',wall:'#1a0a2a',floor:'#100818'},
+ {n:'SINGULARITY',at:5e11,fg:'#ffffff',dim:'#888888',bg:'#050505',wall:'#000010',floor:'#000'},
+];
+const GOAL=1e13;const ppGain=t=>Math.floor(10*Math.cbrt(t/GOAL)); // AGI
+let S;
+function fresh(pp=0,best=0){return{b:0,tot:0,all:0,own:{},ups:[],pp,best,agi:0,t:Date.now(),clicks:0}}
+function load(){try{S=JSON.parse(localStorage.geekidle)}catch(e){} if(!S)S=fresh(); S.own=S.own||{};}
+function save(){S.t=Date.now();localStorage.geekidle=JSON.stringify(S)}
+function stats(){const s={clk:1,m:{},all:1,clkPct:0};B.forEach(b=>s.m[b.id]=2**msCount(S.own[b.id]||0));S.ups.forEach(id=>UP.find(u=>u.id==id).f(s));
+ s.all*=1+S.pp*.1;extra(s);let bps=0;B.forEach(b=>bps+=(S.own[b.id]||0)*b.p*s.m[b.id]);s.bps=bps*s.all;s.click=s.clk*s.all+s.bps*s.clkPct;return s}
+const cost=(b,n=1)=>{const o=S.own[b.id]||0;return Math.ceil(b.c*costMul()*GROW**o*(GROW**n-1)/(GROW-1))};
+function eraIdx(){let i=0;ERA.forEach((e,k)=>{if(S.tot>=e.at)i=k});return i}
+function log(t){const l=$('#log');l.innerHTML='&gt; '+t+'<br>'+l.innerHTML}
+function earn(x){S.b+=x;S.tot+=x}
+let tab='shop',curEra=-1,st,bulk=1;
+function bulkN(b){if(bulk!='max')return bulk;let n=0;while(n<1000&&cost(b,n+1)<=S.b)n++;return n}
+const eta=x=>{const r=st.bps+st.click*2;if(x<=S.b)return 'HAZIR!';if(r<=0)return '?';const s=(x-S.b)/r;return s<60?Math.ceil(s)+'sn':s<3600?Math.ceil(s/60)+'dk':(s/3600).toFixed(1)+'sa'};
+function hint(){const c=[];B.forEach((b,k)=>{if(k==0||(S.own[B[k-1].id]||0)>0||S.tot>=b.c*.5)c.push([b.n,cost(b)])});UP.forEach(u=>{if(!S.ups.includes(u.id)&&S.tot>=u.c*.1)c.push(['⬆ '+u.n,u.c])});
+ const nx=c.filter(x=>x[1]>S.b).sort((a,b)=>a[1]-b[1])[0];const rdy=c.filter(x=>x[1]<=S.b).length;
+ return (rdy?'✅ '+rdy+' şey alınabilir! ':'')+(nx?'▶ '+nx[0]+': '+eta(nx[1]):'')}
+function render(){
+ $('#bytes').textContent=fmt(S.b)+' B';$('#bps').textContent=fmt(st.bps)+' Byte/sn · tık: '+fmt(st.click);$('#hint').textContent=hint();
+ $('#pp').textContent='⚛ '+S.pp+' (+%'+S.pp*10+')';
+ const ei=eraIdx(),e=ERA[ei];
+ if(ei!=curEra){if(curEra>=0){log('YENİ ÇAĞ: '+e.n+'!');popup('ÇAĞ ATLANDI','<b>'+e.n+'</b><br>Odan büyüyor, yeni ekipmanlar açıldı!')}curEra=ei;
+  const r=document.documentElement.style;r.setProperty('--fg',e.fg);r.setProperty('--dim',e.dim);r.setProperty('--bg',e.bg);document.body.style.background=e.bg;$('#eraName').textContent='ÇAĞ '+(ei+1)+': '+e.n}
+ const nx=ERA[ei+1],tgt=nx?nx.at:GOAL,from=e.at;
+ $('#eraNext').textContent=nx?'SONRAKİ ÇAĞ: '+nx.n+' ('+fmt(tgt)+') · ~'+eta(S.b+tgt-S.tot):'NİHAİ HEDEF: AGI ('+fmt(GOAL)+')';
+ $('#eraBar').style.width=Math.min(100,(S.tot-from)/(tgt-from)*100)+'%';
+ renderPanel();
+}
+function renderPanel(){
+ const p=$('#panel');let h='';
+ if(tab=='shop'){let shown=0;h+=`<div class="bulk">${[1,10,'max'].map(v=>`<button data-bulk="${v}" class="${bulk==v?'on':''}">${v=='max'?'MAX':'x'+v}</button>`).join('')}</div>`;
+  B.forEach((b,k)=>{const own=S.own[b.id]||0,n=bulkN(b),c=cost(b,Math.max(1,n));const vis=k==0||(S.own[B[k-1].id]||0)>0||S.tot>=b.c*.5;
+  if(!vis&&shown++)return;const nm=nextMs(own),mc=msCount(own);
+  h+=`<div class="item ${!vis?'hide':S.b>=c&&n>0?'ok':'no'}" data-b="${k}"><div class="ico">${vis?b.i:'❓'}</div><div class="inf"><div class="nm">${vis?b.n:'???'}</div><div class="ds">${b.d} · +${fmt(b.p*st.m[b.id]*st.all)}/sn</div><div class="cs">💾 ${fmt(c)}${n>1?' <b>(x'+n+')</b>':''}</div>${vis&&nm?`<div class="ms"><div style="width:${own/nm*100}%"></div><span>🎯 ${own}/${nm} → x2${mc?' · aktif x'+2**mc:''}</span></div>`:''}</div><div class="cnt">${own}</div></div>`})}
+ else if(tab=='up'){const av=UP.filter(u=>!S.ups.includes(u.id)&&S.tot>=u.c*.1);if(!av.length)h='<div class="ds">Şimdilik yeni upgrade yok. Daha çok kod yaz!</div>';
+  av.forEach(u=>h+=`<div class="item ${S.b>=u.c?'ok':'no'}" data-u="${u.id}"><div class="ico">${u.i}</div><div class="inf"><div class="nm">${u.n}</div><div class="ds">${u.d}</div><div class="cs">💾 ${fmt(u.c)}</div></div></div>`);
+  h+=`<div class="ds" style="margin-top:8px">Alınan: ${S.ups.length}/${UP.length}</div>`}
+ else if(tab=='sk')h=skillPanel();else if(tab=='ach')h=achPanel();else{const gain=ppGain(S.tot);
+  h=`<div class="nm">🎯 NİHAİ GÖREV: AGI'yi İNŞA ET</div><div class="ds">Yatak odasındaki 8086'dan başlayıp Singularity'ye ulaş. ${fmt(GOAL)} Byte toplam üret ve AGI'yi derle.</div>
+  <div class="prog"><div style="width:${Math.min(100,S.tot/GOAL*100)}%"></div></div><div class="ds">${fmt(S.tot)} / ${fmt(GOAL)} · AGI derlendi: ${S.agi} kez</div>
+  <button class="btn" id="agi" ${S.tot>=GOAL?'':'disabled'}>🧠 AGI'yi DERLE</button>
+  <div class="nm" style="margin-top:14px">♻ REBOOT (PRESTIGE)</div><div class="ds">Her şeyi sıfırla, Quantum Bit (⚛) kazan. Her ⚛ = kalıcı +%10 üretim. İlk ⚛ ${fmt(GOAL/1000)} toplamda açılır; AGI'de 10 ⚛.</div>
+  <button class="btn" id="pre" ${gain>0?'':'disabled'}>REBOOT → ⚛ ${gain}} kazan</button>
+  <div class="ds" style="margin-top:12px">Toplam tık: ${S.clicks} · En iyi: ${fmt(S.best)}</div>
+  <button class="btn" id="wipe" style="background:#a33;color:#fff">FORMAT C: (sil)</button>`}
+ p.innerHTML=h;
+}
+$('#panel').addEventListener('click',e=>{const bb=e.target.closest('[data-bulk]');if(bb){bulk=bb.dataset.bulk=='max'?'max':+bb.dataset.bulk;renderPanel();return}const it=e.target.closest('[data-b],[data-u],button');if(!it)return;
+ if(it.dataset.b){const b=B[it.dataset.b],n=bulkN(b),c=cost(b,n),o0=S.own[b.id]||0;if(n>0&&S.b>=c){S.b-=c;S.own[b.id]=o0+n;if(!o0)log(b.n+' kuruldu!');if(msCount(o0+n)>msCount(o0)){toast('🎯 MILESTONE: '+b.n+' '+(o0+n)+' adet → üretim x2!');jingle()}st=stats();beep(660)}}
+ else if(it.dataset.u){const u=UP.find(x=>x.id==it.dataset.u);if(S.b>=u.c){S.b-=u.c;S.ups.push(u.id);st=stats();log('Upgrade: '+u.n);beep(880)}}
+ else if(it.id=='pre'){const g=ppGain(S.tot);if(g>0&&confirm('Reboot? ⚛ '+g+' kazanacaksın.')){const a=S.agi,kp={sk:S.sk,spent:S.spent,ach:S.ach,mus:S.mus,sfx:S.sfx,ev:S.ev};S=fresh(S.pp+g,Math.max(S.best,S.tot));S.agi=a;Object.assign(S,kp);if(has('s_start')){S.own.kb=10;S.own.cof=5}st=stats();curEra=-1;log('sudo reboot... +⚛ '+g)}}
+ else if(it.id=='agi'){S.agi++;popup('🧠 AGI ONLINE','<b>Tebrikler!</b> Yatak odasındaki 8086\'dan Singularity\'ye ulaştın. AGI artık senin yerine kod yazıyor.<br><br>Reboot edip daha büyük ⚛ ile tekrar oyna — sonsuz devam!');}
+ else if(it.id=='wipe'){if(confirm('Tüm kayıt silinsin mi?')){localStorage.removeItem('geekidle');S=fresh();st=stats();curEra=-1}}
+ render()});
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');tab=b.dataset.t;renderPanel()});
+let AC;function beep(f){if(!S.sfx)return;try{AC=AC||new AudioContext();const o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=f;g.gain.value=.03;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.04)}catch(e){}}
+let typing=0;
+$('#tap').addEventListener('pointerdown',e=>{earn(st.click);S.clicks++;typing=8;beep(300+Math.random()*200);
+ const f=document.createElement('div');f.className='float';f.textContent='+'+fmt(st.click);f.style.left=(e.clientX-20)+'px';f.style.top=(e.clientY-30)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),900);render()});
+function popup(h,b){$('#mh').textContent=h;$('#mb').innerHTML=b+'<br><br><button class="btn" onclick="this.closest(\'#modal\').style.display=\'none\'">TAMAM</button>';$('#modal').style.display='flex'}
+// ---------- pixel scene ----------
+const cv=$('#scene'),x=cv.getContext('2d');let fr=0;
+const R=(c,a,b,w,h)=>{x.fillStyle=c;x.fillRect(a,b,w,h)};
+function scene(){fr++;const e=ERA[eraIdx()],o=id=>S.own[id]||0,ei=eraIdx();
+ R(e.wall,0,0,160,70);R(e.floor,0,70,160,30);
+ for(let i=0;i<160;i+=8)R('rgba(255,255,255,.03)',i,0,4,70);
+ // window
+ R('#111',8,8,30,22);R(ei>=4?'#'+((fr>>2)%2?'224':'112'):ei>=2?'#013':'#024',10,10,26,18);
+ for(let i=0;i<5;i++)R('#fff',12+((i*7+fr/20)%22),11+(i*5)%15,1,1);
+ if(ei>=1){R('#555',44,6,40,6);x.fillStyle=e.fg;x.font='6px monospace';x.fillText(e.n,46,11)} // sign
+ // desk
+ R('#6b4423',30,60,70,4);R('#4a2f18',34,64,4,20);R('#4a2f18',92,64,4,20);
+ // 8086 PC
+ R('#c8c0a8',48,38,30,22);R('#000',51,41,24,15);
+ x.fillStyle=e.fg;for(let l=0;l<5;l++){const w=((fr/3+l*7)%20);R(e.fg,52,42+l*3,typing>0&&l==4?w:Math.min(20,(l*13)%20+2),1)}
+ if((fr>>3)%2)R(e.fg,52+(fr/3)%20,54,2,1);
+ R('#a89f88',56,60,14,1);
+ // keyboard
+ if(o('kb')){R('#222',46,57,34,3);for(let i=0;i<8;i++)R(typing>0&&(fr+i)%3==0?e.fg:'#666',47+i*4,58,3,1)}else R('#bbb',48,57,30,3);
+ // coffee
+ if(o('cof')){R('#fff',82,54,6,6);R('#3a1a00',83,55,4,1);if((fr>>4)%2)R('#aaa',84,50,1,3);else R('#aaa',85,49,1,3);if(o('cof')>=10)R('#c33',90,54,5,6)}
+ // books SO
+ if(o('so'))for(let i=0;i<Math.min(6,1+o('so')/5|0);i++)R(['#f48024','#bbb','#36c','#c33','#3a3','#fc3'][i],102+i*4,40,3,12-(i%3));
+ if(o('so'))R('#6b4423',100,52,28,2);
+ // linux
+ if(o('lin')){R('#111',8,46,18,24);R('#000',10,48,14,10);R('#fc0',14,56,6,3);R('#fff',14,50,6,6);R('#000',15,51,1,1);R('#000',18,51,1,1);R(e.fg,10,62,2,1)}
+ // GPU RGB rig
+ if(o('gpu')){R('#222',102,58,22,26);const h=(fr*4)%360;x.fillStyle=`hsl(${h},100%,50%)`;x.fillRect(102,58,22,1);x.fillRect(102,83,22,1);for(let i=0;i<Math.min(3,o('gpu'));i++){R('#444',105,62+i*7,16,5);x.fillStyle=`hsl(${(h+i*90)%360},100%,60%)`;x.fillRect(106,64+i*7,(fr>>1)%2?14:12,1)}}
+ // racks
+ for(let r=0;r<Math.min(3,Math.ceil(o('rack')/5));r++){const bx=128+r*0;if(r>0)break;}
+ if(o('rack'))for(let r=0;r<Math.min(2,1+(o('rack')>=10));r++){const bx=130+r*14;R('#1a1a1a',bx,28,13,56);for(let i=0;i<9;i++){R('#333',bx+1,30+i*6,11,5);R(((fr+i*3+r)%7<3)?'#0f0':'#030',bx+2,32+i*6,1,1);R(((fr+i)%5<2)?'#f80':'#310',bx+4,32+i*6,1,1)}}
+ // cloud
+ if(o('cloud')){const cx=50+Math.sin(fr/40)*6;x.fillStyle='rgba(220,240,255,.85)';x.fillRect(cx,14,22,6);x.fillRect(cx+4,10,12,4);x.fillRect(cx+2,20,18,2);R(e.fg,cx+10,22,1,(fr>>2)%6)}
+ // AI orb
+ if(o('ai')){const p=2+Math.sin(fr/8)*1.5;x.fillStyle='rgba(255,80,255,.25)';x.beginPath();x.arc(92,24,6+p,0,7);x.fill();x.fillStyle='#f5f';x.beginPath();x.arc(92,24,4,0,7);x.fill();R('#fff',90,23,1,1);R('#fff',94,23,1,1)}
+ // quantum
+ if(o('q')){R('#ccd',8,76,20,4);R('#bbc',10,80,16,4);R('#aab',12,84,12,4);R('#c80',17,72,2,4);for(let i=0;i<3;i++){const a=fr/10+i*2.1;R('#6ff',18+Math.cos(a)*8,78+Math.sin(a)*3,1,1)}}
+ // dyson sun
+ if(o('dys')){x.fillStyle=`rgba(255,200,50,${.6+Math.sin(fr/10)*.2})`;x.beginPath();x.arc(23,19,5,0,7);x.fill();x.strokeStyle='#888';x.strokeRect(16,12,14,14)}
+ // singularity
+ if(ei>=4){x.fillStyle='rgba(255,255,255,'+(.05+.05*Math.sin(fr/15))+')';x.fillRect(0,0,160,100)}
+ // geek cat on floor (fun)
+ R('#222',70,86,8,5);R('#222',70,83,3,3);R('#222',75,83,3,3);R(e.fg,71,84,1,1);R(e.fg,76,84,1,1);R('#222',78,88+((fr>>4)%2),4,1);
+ if(typing>0)typing--;
+ requestAnimationFrame(scene)}
+// ================= v2: skills, achievements, events, music =================
+const SK=[
+ {id:'s_clk',t:0,n:'Fast Typing',i:'⌨',d:'Tık gücü x3',c:1,r:[]},
+ {id:'s_bps',t:0,n:'Overclock Core',i:'🔥',d:'Tüm üretim x1.5',c:1,r:[]},
+ {id:'s_off',t:0,n:'Cron Jobs',i:'⏰',d:'Offline verim %100',c:1,r:[]},
+ {id:'s_auto',t:1,n:'Macro Bot',i:'🤖',d:'Saniyede 5 otomatik tık',c:2,r:['s_clk']},
+ {id:'s_cost',t:1,n:'Open Source',i:'🆓',d:'Donanımlar %10 ucuz',c:2,r:['s_bps']},
+ {id:'s_ev',t:1,n:'Lucky Seed',i:'🎲',d:'Olaylar 2x sık',c:2,r:['s_off']},
+ {id:'s_all',t:2,n:'Root Access',i:'#',d:'Tüm üretim x2',c:3,r:['s_auto','s_cost']},
+ {id:'s_start',t:2,n:'Docker Image',i:'🐳',d:'Reboot sonrası 10 Klavye + 5 Kahve',c:3,r:['s_cost']},
+ {id:'s_gold',t:2,n:'Golden Ratio',i:'💾',d:'Altın disket ödülü x3',c:3,r:['s_ev']},
+ {id:'s_neural',t:3,n:'Neural Link',i:'🧠',d:'Tüm üretim x3',c:6,r:['s_all']},
+];
+const has=id=>S.sk.includes(id);
+const ACH=[
+ ['hello','Hello World','İlk tık',()=>S.clicks>=1],
+ ['tik100','Tık Bağımlısı','100 tık',()=>S.clicks>=100],
+ ['carpal','Carpal Tunnel','1000 tık',()=>S.clicks>=1000],
+ ['kb','Kilobyte Club','1K toplam Byte',()=>S.tot>=1e3],
+ ['mb','Megabyte Mogul','1M toplam',()=>S.tot>=1e6],
+ ['gb','Gigabyte Guru','1B toplam',()=>S.tot>=1e9],
+ ['tb','Terabyte Tycoon','1T toplam',()=>S.tot>=1e12],
+ ['caff','Caffeine Overflow','10 Kahve',()=>(S.own.cof||0)>=10],
+ ['cp','Copy-Paste Ninja','25 Stack Overflow',()=>(S.own.so||0)>=25],
+ ['arch','I use Arch btw','Arch btw upgrade',()=>S.ups.includes('u6')],
+ ['rig','Mining Rig','10 GPU',()=>(S.own.gpu||0)>=10],
+ ['kube','kubectl apply -f','Kubernetes upgrade',()=>S.ups.includes('u9')],
+ ['sky','Skynet Beta','İlk AI Model',()=>(S.own.ai||0)>=1],
+ ['schro','Schrödinger','İlk Quantum Computer',()=>(S.own.q||0)>=1],
+ ['found','Startup Founder','STARTUP çağı',()=>eraIdx()>=1],
+ ['dc','Datacenter Lord','DATACENTER çağı',()=>eraIdx()>=2],
+ ['bug','Bug Hunter','5 prod bug fix',()=>S.ev.bug>=5],
+ ['viral','Going Viral','Repo viral oldu',()=>S.ev.viral>=1],
+ ['gold','Golden Floppy','Altın disket yakala',()=>S.ev.gold>=1],
+ ['ups','Upgrade Addict','10 upgrade',()=>S.ups.length>=10],
+ ['reboot','sudo reboot','İlk REBOOT',()=>S.pp>0],
+ ['mute','Silence of the Fans','Müziği kapat',()=>S.mus===false],
+ ['agi','Hello, AGI','AGI derlendi',()=>S.agi>0],
+];
+let buffs=[];
+function norm(){S.sk=S.sk||[];S.spent=S.spent||0;S.ach=S.ach||[];S.ev=Object.assign({bug:0,viral:0,gold:0},S.ev||{});if(S.mus===undefined)S.mus=true;if(S.sfx===undefined)S.sfx=true}
+function extra(s){if(has('s_clk'))s.clk*=3;if(has('s_bps'))s.all*=1.5;if(has('s_all'))s.all*=2;if(has('s_neural'))s.all*=3;
+ s.all*=1+S.ach.length*.02;const now=Date.now();buffs=buffs.filter(b=>b.end>now);buffs.forEach(b=>{s.all*=b.m||1;s.clk*=b.c||1})}
+const costMul=()=>has('s_cost')?.9:1, offRate=()=>has('s_off')?1:.5;
+function toast(t){const T=$('#toasts');while(T.children.length>=3)T.firstChild.remove();const d=document.createElement('div');d.className='toast';d.innerHTML=t;$('#toasts').appendChild(d);setTimeout(()=>d.remove(),3500)}
+function checkAch(){ACH.forEach(a=>{if(!S.ach.includes(a[0])&&a[3]()){S.ach.push(a[0]);toast('🏆 BAŞARIM: <b>'+a[1]+'</b><br>+%2 üretim');jingle();log('Başarım: '+a[1])}})}
+function addBuff(n,m,c,sec){buffs=buffs.filter(b=>b.n!=n);buffs.push({n,m,c,end:Date.now()+sec*1000});st=stats()}
+function renderBuffs(){const now=Date.now();$('#buffs').innerHTML=buffs.filter(b=>b.end>now).map(b=>`<span class="${(b.m||1)<1?'bad':''}">${b.n} ${Math.ceil((b.end-now)/1000)}s</span>`).join('')}
+// --- events
+const EV=[
+ {k:'bug',i:'🐛',t:'Prod\'da bug!',spawn(el){addBuff('🐛 BUG',.5,1,20);el.life=20},hit(){S.ev.bug++;buffs=buffs.filter(b=>b.n!='🐛 BUG');const g=st.bps*30+st.click*10;earn(g);toast('🐛 Bug fixed! +'+fmt(g)+' B')}},
+ {k:'viral',i:'⭐',t:'Repo viral oldu!',hit(){S.ev.viral++;addBuff('⭐ VIRAL x7',7,1,30);toast('⭐ GitHub trending! 30sn x7')}},
+ {k:'hack',i:'🏁',t:'Hackathon!',hit(){addBuff('🏁 HACKATHON',1,10,20);toast('🏁 Hackathon! 20sn tık x10')}},
+ {k:'gold',i:'💾',t:'Altın disket',hit(){S.ev.gold++;const g=(Math.max(st.bps*120,st.click*60)+20)*(has('s_gold')?3:1);earn(g);toast('💾 Altın disket! +'+fmt(g)+' B')}},
+ {k:'coffee',i:'☕',t:'Kahve molası',hit(){addBuff('☕ MOLA x2',2,2,45);toast('☕ Kahve molası: 45sn x2')}},
+];
+let nextEv=Date.now()+20000;
+function spawnEvent(kind){const e=kind?EV.find(x=>x.k==kind):EV[Math.random()*EV.length|0];const el=document.createElement('div');el.className='evt';el.innerHTML=`<div class="ei">${e.i}</div><div class="et">${e.t}</div>`;
+ el.style.left=(8+Math.random()*60)+'vw';el.style.top=(15+Math.random()*45)+'vh';el.dataset.k=e.k;document.body.appendChild(el);el.life=12;if(e.spawn)e.spawn(el);
+ const kill=setTimeout(()=>el.remove(),el.life*1000);
+ el.addEventListener('pointerdown',ev=>{ev.stopPropagation();clearTimeout(kill);el.remove();e.hit();sfx([880,1320,1760]);st=stats();checkAch();render()});
+ sfx([440,660]);}
+function evTick(){if(Date.now()>nextEv){spawnEvent();nextEv=Date.now()+(40000+Math.random()*50000)*(has('s_ev')?.5:1)}}
+// --- skill tree
+function skillPanel(){const free=S.pp-S.spent;let h=`<div class="nm">🌳 SKILL TREE</div><div class="ds">Harcanabilir ⚛: <b style="color:var(--acc)">${free}</b> / ${S.pp} · ⚛ başına +%10 pasif bonus devam eder. REBOOT ile ⚛ kazan.</div><div class="tree">`;
+ for(let t=0;t<4;t++){if(t)h+='<div class="link">│ ▼ │</div>';h+='<div class="tier">';SK.filter(k=>k.t==t).forEach(k=>{const own=has(k.id),ok=k.r.every(has),can=!own&&ok&&free>=k.c;
+  h+=`<div class="sk ${own?'own':can?'can':ok?'':'lock'}" data-sk="${k.id}"><div class="ico">${ok||own?k.i:'🔒'}</div><div class="nm">${k.n}</div><div class="ds">${k.d}</div><div class="cs">${own?'✔ AKTİF':'⚛ '+k.c}</div></div>`});h+='</div>'}
+ return h+'</div>'}
+function achPanel(){return `<div class="nm">🏆 BAŞARIMLAR ${S.ach.length}/${ACH.length}</div><div class="ds">Her biri +%2 üretim (şu an +%${S.ach.length*2})</div><div class="achs">`+ACH.map(a=>{const o=S.ach.includes(a[0]);return `<div class="ach ${o?'own':''}"><div class="ico">${o?'🏆':'❔'}</div><div class="nm">${a[1]}</div><div class="ds">${a[2]}</div></div>`}).join('')+'</div>'}
+document.addEventListener('click',e=>{const k=e.target.closest('[data-sk]');if(!k)return;const s=SK.find(x=>x.id==k.dataset.sk);
+ if(!has(s.id)&&s.r.every(has)&&S.pp-S.spent>=s.c){S.spent+=s.c;S.sk.push(s.id);st=stats();toast('🌳 Skill: <b>'+s.n+'</b>');sfx([523,659,784,1046]);renderPanel()}});
+// --- audio
+function sfx(ns){if(!S.sfx)return;try{AC=AC||new AudioContext();ns.forEach((f,i)=>{const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+i*.06;o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.04,t);g.gain.exponentialRampToValueAtTime(.001,t+.1);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+.1)})}catch(e){}}
+const jingle=()=>sfx([523,784,1046,1568]);
+let mGain,mTimer,mStep=0,mNext=0;
+const LEAD=[0,null,7,null,12,null,7,10, 0,null,7,null,15,14,12,10, 3,null,10,null,15,null,10,12, 5,null,12,null,7,5,3,2];
+const BASS=[0,0,12,0,0,0,12,0, -4,-4,8,-4,-2,-2,10,-2];
+const hz=n=>220*2**(n/12);
+function note(type,f,t,d,v){const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(mGain);o.start(t);o.stop(t+d)}
+function hat(t){const b=AC.createBuffer(1,800,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<800;i++)d[i]=(Math.random()*2-1)*(1-i/800);const s=AC.createBufferSource(),g=AC.createGain();g.gain.value=.05;s.buffer=b;s.connect(g);g.connect(mGain);s.start(t)}
+function musicStart(){if(mTimer||!S.mus)return;try{AC=AC||new AudioContext();AC.resume();mGain=AC.createGain();mGain.gain.value=.5;mGain.connect(AC.destination);mNext=AC.currentTime+.1;
+ mTimer=setInterval(()=>{const sp=60/(132+eraIdx()*6)/4,tr=eraIdx()*2;while(mNext<AC.currentTime+.2){const i=mStep%32,l=LEAD[i];if(l!==null)note('square',hz(l+12+tr),mNext,sp*1.8,.035);
+  if(mStep%2==0)note('triangle',hz(BASS[(mStep>>1)%16]-12+tr),mNext,sp*1.9,.12);if(mStep%4==2)hat(mNext);mStep++;mNext+=sp}},25)}catch(e){}}
+function musicStop(){clearInterval(mTimer);mTimer=null;if(mGain){mGain.disconnect();mGain=null}}
+function audioUI(){$('#mus').textContent=S.mus?'🎵':'🔇';$('#sfxb').textContent=S.sfx?'🔊':'🔈';$('#mus').classList.toggle('off',!S.mus);$('#sfxb').classList.toggle('off',!S.sfx)}
+$('#mus').onclick=()=>{S.mus=!S.mus;S.mus?musicStart():musicStop();audioUI();checkAch();save()};
+$('#sfxb').onclick=()=>{S.sfx=!S.sfx;audioUI();save()};
+document.addEventListener('pointerdown',()=>musicStart(),{once:true});
+setInterval(()=>{if(has('s_auto')){earn(st.click*5/4)}evTick();renderBuffs();checkAch()},250);
+
+// ---------- loop ----------
+load();norm();st=stats();audioUI();
+const off=Math.min((Date.now()-S.t)/1000,8*3600);
+if(off>30&&st.bps>0){const g=st.bps*off*offRate();earn(g);setTimeout(()=>popup('OFFLINE KAZANÇ','Sen yokken sunucular çalıştı:<br><b>+'+fmt(g)+' Byte</b><br>('+Math.floor(off/60)+' dk, %'+offRate()*100+' verim)'),300)}
+let last=performance.now();
+setInterval(()=>{const n=performance.now(),dt=(n-last)/1000;last=n;st=stats();earn(st.bps*dt);if(S.tot>S.best)S.best=S.tot;render()},250);
+setInterval(save,5000);addEventListener('visibilitychange',save);addEventListener('pagehide',save);
+log('BIOS v1.0 ... OK');log('8086 yatak odasında açıldı. Kod yazmaya başla!');
+render();scene();
+</script></body></html>

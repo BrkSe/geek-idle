@@ -1,0 +1,21 @@
+const {chromium,devices}=require('playwright');
+(async()=>{const b=await chromium.launch();const c=await b.newContext({...devices['iPhone 12'],hasTouch:true});const p=await c.newPage();
+let errs=[];p.on('pageerror',e=>{errs.push(e.message);console.log('PAGEERR',e.message)});p.on('console',m=>{if(m.type()=='error'){errs.push(m.text());console.log('CERR',m.text())}});p.on('dialog',d=>d.accept());
+const E=f=>p.evaluate(f);
+// old-save compatibility
+await p.goto(process.argv[2]);await E(()=>localStorage.geekidle=JSON.stringify({b:500,tot:800,own:{kb:3},ups:['u1'],pp:0,best:0,agi:0,t:Date.now()-600000,clicks:40}));await p.reload();await p.waitForTimeout(600);
+console.log('old save',await E(()=>[S.b|0,S.own.kb,S.sk.length]));await p.click('#modal .btn').catch(()=>{});
+await E(()=>{localStorage.clear()});await p.reload();await p.waitForTimeout(500);
+let t0=Date.now();for(let i=0;i<10;i++)await p.tap('#tap');console.log('hint',await p.textContent('#hint'));
+await p.tap('[data-b="0"]');console.log('kb',await E(()=>S.own.kb));
+await E(()=>{S.b=5000;S.tot=5000});await p.waitForTimeout(300);
+await p.tap('[data-bulk="10"]');await p.tap('[data-b="0"]');console.log('x10 ->',await E(()=>S.own.kb));
+await p.tap('[data-bulk="max"]');await p.tap('[data-b="1"]');console.log('max cof',await E(()=>[S.own.cof,S.b|0]));
+await p.waitForTimeout(3600);
+console.log('ms',await p.textContent('.ms span'),'hint',await p.textContent('#hint'),'era',await p.textContent('#eraNext'));
+await p.tap('[data-t="up"]');console.log('ups visible',await E(()=>document.querySelectorAll('[data-u]').length));await p.tap('[data-t="shop"]');
+await E(()=>{S.tot=6e4;S.b=2e4});await p.waitForTimeout(500);await p.click('#modal .btn').catch(()=>{});await p.waitForTimeout(300);
+await p.screenshot({path:'shot3.png',fullPage:true});
+await E(()=>{S.tot=2e13});await p.waitForTimeout(400);await p.click('#modal .btn').catch(()=>{});await p.tap('[data-t="goal"]');await p.tap('#pre');await p.waitForTimeout(300);
+console.log('reboot pp',await E(()=>[S.pp,S.tot]));
+console.log('scrollW',await E(()=>document.documentElement.scrollWidth+'/'+innerWidth),'ERRS',errs.length);await b.close()})();
