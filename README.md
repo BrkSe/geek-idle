@@ -6,7 +6,7 @@ Yatak odasındaki tek bir **8086 PC** ile kod yazmaya başla, **AGI**'yi derleyi
 
 | Oyun | Skill Tree | Başarımlar |
 |---|---|---|
-| ![oyun](screenshots/shot3.png) | ![skill](screenshots/shot2_skill.png) | ![başarım](screenshots/shot2_ach.png) |
+| ![oyun](screenshots/shot4.png) | ![skill](screenshots/shot2_skill.png) | ![başarım](screenshots/shot2_ach.png) |
 
 ## Özellikler
 - 📺 Retro CRT görünüm: scanline, fosfor ışıltısı, Press Start 2P / VT323 pixel fontları, Win95 pencereleri

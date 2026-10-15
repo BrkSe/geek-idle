@@ -66,6 +66,31 @@ canvas{width:100%;image-rendering:pixelated;border:3px solid var(--fg);box-shado
 #modal .box{background:var(--win);color:#000;border:3px outset #fff;max-width:420px;width:100%}
 #modal .hd{background:#000080;color:#fff;font-family:'Press Start 2P';font-size:10px;padding:6px}
 #modal .bd{padding:12px;font-size:20px}
+
+/* ===== compact layout v4 ===== */
+html,body{font-size:18px}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;padding:4px 6px 4px;gap:3px}
+.title{font-size:10px;padding:2px 0}
+.bar{padding:3px 5px;font-size:8px;box-shadow:0 0 5px var(--fg)}
+.aud button{font-size:14px;padding:0 5px;min-height:32px;min-width:36px}
+.big{margin:0;line-height:1.05}
+#bytes{font-size:18px}
+#bps{font-size:16px}#hint{font-size:15px;min-height:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#buffs{margin:0}
+canvas{flex:0 0 auto;height:auto;max-height:24vh;object-fit:contain;border-width:2px;box-shadow:0 0 8px var(--fg)}
+#tap{margin:2px 0;padding:10px;min-height:44px;font-size:12px;border-bottom-width:4px}
+.era{margin:0;font-size:7px}.prog{height:8px;margin:1px 0}
+.tabs{margin-top:2px;gap:2px}.tabs button{padding:0 1px;min-height:40px;font-size:7px;border-width:2px}
+.panel{flex:1 1 auto;min-height:150px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px;overscroll-behavior:contain}
+.item{padding:4px 6px;margin:3px 0;gap:6px;min-height:44px}
+.ico{font-size:22px;width:28px}.ds{font-size:15px}.cs{font-size:16px}.cnt{font-size:12px}
+.ms{height:11px;margin-top:2px}.ms span{font-size:12px;top:-2px}
+.bulk{margin-bottom:2px}.bulk button{padding:0;min-height:40px}
+.log{flex:0 0 auto;height:34px;font-size:14px;margin:0}
+.toast{padding:5px 8px;font-size:16px;margin-bottom:4px}
+#toasts{top:auto;bottom:6px}
+@media (max-height:700px){canvas{max-height:20vh}.log{height:18px}.title{display:none}}
+@media (min-height:900px){canvas{max-height:30vh}}
 </style></head><body>
 <div id="crt"></div>
 <div id="app">

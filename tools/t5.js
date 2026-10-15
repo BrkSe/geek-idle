@@ -1,0 +1,5 @@
+const {chromium,devices}=require('playwright');
+(async()=>{const b=await chromium.launch();for(const d of ['iPhone SE','iPhone 12','Pixel 7']){const c=await b.newContext({...devices[d]});const p=await c.newPage();let errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>m.type()=='error'&&errs.push(m.text()));
+await p.goto(process.argv[2]);await p.waitForTimeout(600);for(let i=0;i<12;i++)await p.tap('#tap');await p.tap('[data-b="0"]');
+const r=await p.evaluate(()=>{const q=s=>document.querySelector(s).getBoundingClientRect();return {own:S.own.kb,vh:innerHeight,docH:document.documentElement.scrollHeight,sw:document.documentElement.scrollWidth+'/'+innerWidth,tap:Math.round(q('#tap').height),tabs:Math.round(q('.tabs button').height),panelTop:Math.round(q('#panel').top),item2Bottom:Math.round(document.querySelectorAll('.item')[1].getBoundingClientRect().bottom)}});
+console.log(d,JSON.stringify(r),'ERRS',errs.length);if(d=='iPhone 12'){await p.evaluate(()=>{S.b=3e4;S.tot=3e4});await p.waitForTimeout(4000);await p.screenshot({path:'shot4.png'})}await c.close()}await b.close()})();
